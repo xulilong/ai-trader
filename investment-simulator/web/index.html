@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟投资系统 - 龙哥的操盘手</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      padding: 30px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 30px;
+    }
+    
+    header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    header p {
+      color: #888;
+      font-size: 1.1em;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,217,255,0.2);
+    }
+    
+    .stat-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .stat-value.positive {
+      color: #00ff88;
+    }
+    
+    .stat-value.negative {
+      color: #ff4757;
+    }
+    
+    .stat-label {
+      color: #888;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .section {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .section h2 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      color: #00d9ff;
+      border-bottom: 2px solid rgba(0,217,255,0.3);
+      padding-bottom: 10px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    th {
+      background: rgba(0,217,255,0.1);
+      color: #00d9ff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85em;
+      letter-spacing: 1px;
+    }
+    
+    tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    
+    .badge-buy {
+      background: rgba(0,255,136,0.2);
+      color: #00ff88;
+    }
+    
+    .badge-sell {
+      background: rgba(255,71,87,0.2);
+      color: #ff4757;
+    }
+    
+    .badge-hold {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    
+    .chart-container {
+      height: 400px;
+      position: relative;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+    
+    .empty-state p {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    
+    .refresh-btn {
+      background: linear-gradient(90deg, #00d9ff, #00ff88);
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      color: #1a1a2e;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1em;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .refresh-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(0,217,255,0.4);
+    }
+    
+    .last-update {
+      text-align: center;
+      color: #666;
+      margin-top: 20px;
+      font-size: 0.9em;
+    }
+    
+    .pnl-up {
+      color: #00ff88;
+    }
+    
+    .pnl-down {
+      color: #ff4757;
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 1.8em;
+      }
+      
+      .stat-value {
+        font-size: 2em;
+      }
+      
+      table {
+        font-size: 0.9em;
+      }
+      
+      th, td {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🦞 模拟投资系统</h1>
+      <p>龙哥的 AI 操盘手 - 自动化交易监控面板</p>
+      <button class="refresh-btn" onclick="loadData()" style="margin-top: 15px;">🔄 刷新数据</button>
+    </header>
+    
+    <!-- 核心统计 -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalAssets">-</div>
+        <div class="stat-label">总资产</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalReturn">-</div>
+        <div class="stat-label">总收益率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="winRate">-</div>
+        <div class="stat-label">胜率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalTrades">-</div>
+        <div class="stat-label">交易次数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="positionCount">-</div>
+        <div class="stat-label">持仓数量</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dailyReturn">-</div>
+        <div class="stat-label">今日收益</div>
+      </div>
+    </div>
+    
+    <!-- 资金曲线 -->
+    <div class="section">
+      <h2>📈 资金曲线</h2>
+      <div class="chart-container">
+        <canvas id="assetChart"></canvas>
+      </div>
+    </div>
+    
+    <!-- 当前持仓 -->
+    <div class="section">
+      <h2>💼 当前持仓</h2>
+      <table id="positionsTable">
+        <thead>
+          <tr>
+            <th>股票代码</th>
+            <th>持仓数量</th>
+            <th>成本价</th>
+            <th>当前价</th>
+            <th>市值</th>
+            <th>盈亏</th>
+            <th>盈亏率</th>
+          </tr>
+        </thead>
+        <tbody id="positionsBody">
+          <tr><td colspan="7" class="empty-state">暂无持仓</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- 交易记录 -->
+    <div class="section">
+      <h2>📝 交易记录</h2>
+      <table id="tradesTable">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>类型</th>
+            <th>股票代码</th>
+            <th>价格</th>
+            <th>数量</th>
+            <th>金额</th>
+            <th>盈亏</th>
+            <th>原因</th>
+          </tr>
+        </thead>
+        <tbody id="tradesBody">
+          <tr><td colspan="8" class="empty-state">暂无交易记录</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="last-update" id="lastUpdate">
+      最后更新：-
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let assetChart = null;
+    
+    // 格式化金额
+    function formatMoney(amount) {
+      return '¥' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+    
+    // 格式化百分比
+    function formatPercent(value) {
+      const num = parseFloat(value);
+      const sign = num >= 0 ? '+' : '';
+      return sign + num.toFixed(2) + '%';
+    }
+    
+    // 格式化时间
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // 加载数据
+    async function loadData() {
+      try {
+        const response = await fetch('state.json?t=' + Date.now());
+        const data = await response.json();
+        
+        updateStats(data.stats);
+        updatePositions(data.positions);
+        updateTrades(data.recentTrades);
+        updateChart(data.dailySnapshot);
+        updateLastUpdate(data.lastUpdate);
+      } catch (err) {
+        console.error('加载数据失败:', err);
+      }
+    }
+    
+    // 更新统计
+    function updateStats(stats) {
+      document.getElementById('totalAssets').textContent = formatMoney(stats.currentAssets);
+      
+      const totalReturnEl = document.getElementById('totalReturn');
+      totalReturnEl.textContent = formatPercent(stats.totalReturn);
+      totalReturnEl.className = 'stat-value ' + (parseFloat(stats.totalReturn) >= 0 ? 'positive' : 'negative');
+      
+      document.getElementById('winRate').textContent = stats.winRate + '%';
+      document.getElementById('totalTrades').textContent = stats.totalTrades;
+      document.getElementById('positionCount').textContent = stats.positionCount;
+      
+      // 今日收益
+      const dailyReturnEl = document.getElementById('dailyReturn');
+      if (stats.dailySnapshot && stats.dailySnapshot.length > 0) {
+        const last = stats.dailySnapshot[stats.dailySnapshot.length - 1];
+        dailyReturnEl.textContent = formatPercent(last.dailyReturn * 100);
+        dailyReturnEl.className = 'stat-value ' + (last.dailyReturn >= 0 ? 'positive' : 'negative');
+      } else {
+        dailyReturnEl.textContent = '-';
+      }
+    }
+    
+    // 更新持仓表格
+    function updatePositions(positions) {
+      const tbody = document.getElementById('positionsBody');
+      
+      if (!positions || positions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无持仓</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = positions.map(pos => {
+        const pnlClass = pos.pnl >= 0 ? 'pnl-up' : 'pnl-down';
+        return `
+          <tr>
+            <td><strong>${pos.code}</strong></td>
+            <td>${pos.shares}</td>
+            <td>¥${pos.avgCost.toFixed(2)}</td>
+            <td>¥${pos.currentPrice.toFixed(2)}</td>
+            <td>${formatMoney(pos.marketValue)}</td>
+            <td class="${pnlClass}">${formatMoney(pos.pnl)}</td>
+            <td class="${pnlClass}">${formatPercent(pos.pnlPercent)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // 更新交易记录表格
+    function updateTrades(trades) {
+      const tbody = document.getElementById('tradesBody');
+      
+      if (!trades || trades.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">暂无交易记录</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = trades.map(trade => {
+        const typeClass = trade.type === 'BUY' ? 'badge-buy' : 'badge-sell';
+        const pnlText = trade.type === 'SELL' ? 
+          (trade.pnl >= 0 ? `+${formatMoney(trade.pnl)}` : formatMoney(trade.pnl)) : '-';
+        const pnlClass = trade.type === 'SELL' ? (trade.pnl >= 0 ? 'pnl-up' : 'pnl-down') : '';
+        
+        return `
+          <tr>
+            <td>${formatTime(trade.timestamp)}</td>
+            <td><span class="badge ${typeClass}">${trade.type === 'BUY' ? '买入' : '卖出'}</span></td>
+            <td><strong>${trade.stockCode}</strong></td>
+            <td>¥${trade.price.toFixed(2)}</td>
+            <td>${trade.shares}</td>
+            <td>${formatMoney(trade.amount)}</td>
+            <td class="${pnlClass}">${pnlText}</td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${trade.reason || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // 更新资金曲线图表
+    function updateChart(snapshots) {
+      const ctx = document.getElementById('assetChart').getContext('2d');
+      
+      if (!snapshots || snapshots.length === 0) {
+        return;
+      }
+      
+      const labels = snapshots.map(s => s.date);
+      const assets = snapshots.map(s => s.totalAssets);
+      const returns = snapshots.map(s => s.totalReturn * 100);
+      
+      if (assetChart) {
+        assetChart.destroy();
+      }
+      
+      assetChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '总资产 (¥)',
+            data: assets,
+            borderColor: '#00d9ff',
+            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#00d9ff',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: '#888'
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255,255,255,0.05)'
+              },
+              ticks: {
+                color: '#888'
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255,255,255,0.05)'
+              },
+              ticks: {
+                color: '#888',
+                callback: function(value) {
+                  return '¥' + value.toFixed(0);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 更新时间
+    function updateLastUpdate(isoString) {
+      const date = new Date(isoString);
+      document.getElementById('lastUpdate').textContent = 
+        '最后更新：' + date.toLocaleString('zh-CN');
+    }
+    
+    // 页面加载时获取数据
+    document.addEventListener('DOMContentLoaded', loadData);
+    
+    // 每 30 秒自动刷新
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>

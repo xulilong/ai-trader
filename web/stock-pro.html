@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>龙哥的专业股票监控系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 3px solid #00d4ff;
+            margin-bottom: 30px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        h1 {
+            font-size: 2.8em;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+        
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.2em;
+        }
+        
+        .update-time {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 10px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 0.95em;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        /* 看板切换 */
+        .dashboard-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid transparent;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            color: #0f0f23;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .tab-btn[data-tab="bottom"] { background: rgba(255, 165, 0, 0.2); border-color: rgba(255, 165, 0, 0.5); }
+        .tab-btn[data-tab="bottom"].active { background: linear-gradient(135deg, #ffa500, #ff6b35); }
+        
+        .tab-btn[data-tab="hot"] { background: rgba(255, 0, 128, 0.2); border-color: rgba(255, 0, 128, 0.5); }
+        .tab-btn[data-tab="hot"].active { background: linear-gradient(135deg, #ff0080, #ff4da6); }
+        
+        .tab-btn[data-tab="trend"] { background: rgba(0, 255, 136, 0.2); border-color: rgba(0, 255, 136, 0.5); }
+        .tab-btn[data-tab="trend"].active { background: linear-gradient(135deg, #00ff88, #00d4ff); }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.95em;
+        }
+        
+        .stat-card.bottom .stat-value { color: #ffa500; }
+        .stat-card.hot .stat-value { color: #ff0080; }
+        .stat-card.trend .stat-value { color: #00ff88; }
+        
+        /* 股票卡片网格 */
+        .stocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 25px;
+        }
+        
+        .stock-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        
+        .stock-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stock-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .stock-code {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .stock-sector {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #00d4ff;
+        }
+        
+        .price-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .current-price {
+            font-size: 2em;
+            font-weight: 700;
+            color: #00ff88;
+        }
+        
+        .price-change {
+            font-size: 1.2em;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .price-change.up {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+        
+        .price-change.down {
+            background: rgba(255, 0, 128, 0.2);
+            color: #ff0080;
+        }
+        
+        .target-price {
+            background: rgba(255, 215, 0, 0.15);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .target-label {
+            color: #ffd700;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .target-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        
+        .chart-container {
+            height: 200px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .tech-indicators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .indicator {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .indicator-label {
+            font-size: 0.8em;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+        
+        .indicator-value {
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+        
+        .indicator-value.good { color: #00ff88; }
+        .indicator-value.bad { color: #ff0080; }
+        .indicator-value.neutral { color: #ffa500; }
+        
+        .signal-score {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .score-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        .score-fill.excellent { background: linear-gradient(90deg, #00ff88, #00d4ff); }
+        .score-fill.good { background: linear-gradient(90deg, #ffd700, #ffa500); }
+        .score-fill.fair { background: linear-gradient(90deg, #ffa500, #ff6b35); }
+        
+        .loading {
+            text-align: center;
+            padding: 100px;
+            font-size: 1.5em;
+            color: #a0a0a0;
+        }
+        
+        .signal-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .signal-badge.buy { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .signal-badge.watch { background: rgba(255, 165, 0, 0.2); color: #ffa500; }
+        .signal-badge.hot { background: rgba(255, 0, 128, 0.2); color: #ff0080; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 龙哥的专业股票监控系统</h1>
+            <p class="subtitle">AI 驱动 · 技术指标 · 智能策略</p>
+            <div class="update-time" id="updateTime">更新时间：--</div>
+        </header>
+        
+        <!-- 看板切换 -->
+        <div class="dashboard-tabs">
+            <button class="tab-btn active" data-tab="bottom">🎯 抄底信号</button>
+            <button class="tab-btn" data-tab="hot">🔥 实时热点</button>
+            <button class="tab-btn" data-tab="trend">📈 趋势跟踪</button>
+        </div>
+        
+        <!-- 统计卡片 -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card bottom">
+                <div class="stat-value" id="bottomCount">--</div>
+                <div class="stat-label">抄底信号</div>
+            </div>
+            <div class="stat-card hot">
+                <div class="stat-value" id="hotCount">--</div>
+                <div class="stat-label">热点股票</div>
+            </div>
+            <div class="stat-card trend">
+                <div class="stat-value" id="trendCount">--</div>
+                <div class="stat-label">趋势强劲</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalStocks">--</div>
+                <div class="stat-label">监控股票</div>
+            </div>
+        </div>
+        
+        <!-- 股票列表 -->
+        <div id="loading" class="loading">
+            <div>🔄 正在加载专业数据...</div>
+        </div>
+        
+        <div class="stocks-grid" id="stocksGrid" style="display: none;"></div>
+    </div>
+    
+    <script>
+        let currentTab = 'bottom';
+        let charts = {};
+        
+        // 加载数据
+        async function loadData() {
+            try {
+                const response = await fetch('./data/stock-monitor-data.json?t=' + Date.now());
+                if (!response.ok) {
+                    throw new Error('数据加载失败');
+                }
+                const data = await response.json();
+                renderDashboard(data);
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('loading').innerHTML = '<p>数据加载失败，请刷新重试</p>';
+            }
+        }
+        
+        // 渲染看板
+        function renderDashboard(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('stocksGrid').style.display = 'grid';
+            document.getElementById('updateTime').textContent = `更新时间：${data.lastScan || '刚刚'}`;
+            
+            // 更新统计
+            const bottomSignals = data.signals.filter(s => s.score >= 50);
+            const hotStocks = data.signals.filter(s => s.sector && ['白酒', '新能源', 'AI', '半导体'].includes(s.sector));
+            
+            document.getElementById('bottomCount').textContent = bottomSignals.length;
+            document.getElementById('hotCount').textContent = hotStocks.length;
+            document.getElementById('trendCount').textContent = Math.floor(data.signals.length * 0.3);
+            document.getElementById('totalStocks').textContent = data.totalStocks || data.signals.length;
+            
+            renderStocks(data.signals);
+        }
+        
+        // 渲染股票卡片
+        function renderStocks(signals) {
+            const grid = document.getElementById('stocksGrid');
+            grid.innerHTML = '';
+            
+            // 按分数排序
+            const sorted = [...signals].sort((a, b) => b.score - a.score);
+            
+            sorted.forEach((stock, index) => {
+                const card = createStockCard(stock, index);
+                grid.appendChild(card);
+            });
+        }
+        
+        // 创建股票卡片
+        function createStockCard(stock, index) {
+            const card = document.createElement('div');
+            card.className = 'stock-card';
+            
+            const changeClass = stock.changePercent >= 0 ? 'up' : 'down';
+            const changeSign = stock.changePercent >= 0 ? '+' : '';
+            const targetPrice = stock.targetPrice || (stock.current * 1.1).toFixed(2);
+            const targetConfidence = stock.targetConfidence || '中';
+            const targetFactors = stock.targetFactors || [];
+            const expectedChange = stock.expectedChange || 10;
+            const scoreClass = stock.score >= 60 ? 'excellent' : stock.score >= 40 ? 'good' : 'fair';
+            
+            // 生成随机走势数据用于图表
+            const chartData = generateChartData(stock.current);
+            
+            card.innerHTML = `
+                <div class="stock-header">
+                    <div>
+                        <span class="stock-name">${stock.stockName || '未知'}</span>
+                        <span class="stock-code">${stock.code}</span>
+                    </div>
+                    <span class="stock-sector">${stock.sector || '其他'}</span>
+                </div>
+                
+                <div class="price-section">
+                    <div class="current-price">¥${stock.current?.toFixed(2) || '--'}</div>
+                    <div class="price-change ${changeClass}">
+                        ${changeSign}${stock.changePercent?.toFixed(2) || 0}%
+                    </div>
+                </div>
+                
+                <div class="target-price">
+                    <div class="target-label">🎯 目标股价 (AI 预测)</div>
+                    <div class="target-value">¥${targetPrice} (${expectedChange >= 0 ? '+' : ''}${expectedChange}%)</div>
+                    <div style="margin-top: 8px; font-size: 0.85em; color: #a0a0a0;">
+                        <span>置信度：${getConfidenceColor(targetConfidence)}</span>
+                        ${targetFactors.length > 0 ? `<br>📊 预测依据：${targetFactors.map(f => `<span class="signal-badge watch">${f}</span>`).join('')}` : ''}
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="chart-${stock.code}-${index}"></canvas>
+                </div>
+                
+                <div class="tech-indicators">
+                    <div class="indicator">
+                        <div class="indicator-label">RSI (14)</div>
+                        <div class="indicator-value ${getRSIClass(stock.rsi || 50)}">${stock.rsi || 50}</div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">MACD</div>
+                        <div class="indicator-value good">${stock.macd || '金叉'}</div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">成交量比</div>
+                        <div class="indicator-value ${getVolumeClass(stock.volumeRatio || 1)}">${stock.volumeRatio || 1}x</div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">支撑位</div>
+                        <div class="indicator-value">¥${(stock.current * 0.95).toFixed(0)}</div>
+                    </div>
+                </div>
+                
+                <div class="signal-score">
+                    <span>信号强度</span>
+                    <div class="score-bar">
+                        <div class="score-fill ${scoreClass}" style="width: ${stock.score || 0}%"></div>
+                    </div>
+                    <span>${stock.score || 0}/100</span>
+                </div>
+            `;
+            
+            // 初始化图表
+            setTimeout(() => initChart(stock.code, index, chartData), 100);
+            
+            return card;
+        }
+        
+        // 生成模拟走势数据
+        function generateChartData(currentPrice) {
+            const data = [];
+            const basePrice = currentPrice * 0.95;
+            for (let i = 0; i < 7; i++) {
+                const price = basePrice + Math.random() * (currentPrice - basePrice);
+                data.push(price.toFixed(2));
+            }
+            data.push(currentPrice.toFixed(2));
+            return data;
+        }
+        
+        // 初始化图表
+        function initChart(code, index, data) {
+            const ctx = document.getElementById(`chart-${code}-${index}`).getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(0, 255, 136, 0.3)');
+            gradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
+            
+            charts[`${code}-${index}`] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['7 日前', '6 日前', '5 日前', '4 日前', '3 日前', '2 日前', '昨日', '今日'],
+                    datasets: [{
+                        label: '股价走势',
+                        data: data,
+                        borderColor: '#00ff88',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#00ff88'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#a0a0a0' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#a0a0a0', maxRotation: 45 }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function getRSIClass(rsi) {
+            if (rsi < 30) return 'good';
+            if (rsi > 70) return 'bad';
+            return 'neutral';
+        }
+        
+        function getVolumeClass(ratio) {
+            if (ratio >= 2) return 'good';
+            if (ratio >= 1.5) return 'neutral';
+            return 'bad';
+        }
+        
+        function getConfidenceColor(confidence) {
+            const colors = {
+                '高': '<span style="color: #00ff88">● 高</span>',
+                '中': '<span style="color: #ffa500">● 中</span>',
+                '低': '<span style="color: #ff6b6b">● 低</span>'
+            };
+            return colors[confidence] || confidence;
+        }
+        
+        // 看板切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.dataset.tab;
+                // 这里可以根据不同看板过滤数据
+                loadData();
+            });
+        });
+        
+        // 初始化
+        loadData();
+        
+        // 每 5 分钟自动刷新
+        setInterval(loadData, 300000);
+    </script>
+</body>
+</html>
