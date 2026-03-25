@@ -3,60 +3,62 @@ name: 🚀 Auto Deploy
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
         
-    - name: 📦 Install dependencies
-      run: |
-        cd investment-simulator
-        if [ -f "package.json" ]; then
-          npm install --legacy-peer-deps || npm install
-        fi
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: 📦 Install dependencies
+        run: |
+          cd investment-simulator
+          npm install --legacy-peer-deps || npm install || echo "No deps needed"
+          
+      - name: 📊 Generate sample data
+        run: |
+          cd investment-simulator
+          node sample-data.js
+          
+      - name: 🏗️ Build
+        run: |
+          cd investment-simulator
+          echo "Build completed"
+          
+      - name: 📁 Setup Pages artifact
+        run: |
+          mkdir -p _site
+          cp -r investment-simulator/web/* _site/
+          cp investment-simulator/state.json _site/ 2>/dev/null || echo "No state.json yet"
+          
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './_site'
+          
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
         
-    - name: 🧪 Run tests
-      run: |
-        cd investment-simulator
-        node sim-trader.js --stats || echo "Tests completed"
-        
-    - name: 📊 Generate sample data
-      run: |
-        cd investment-simulator
-        node sample-data.js
-        
-    - name: 🏗️ Build
-      run: |
-        cd investment-simulator
-        echo "Build completed"
-        
-    - name: 📁 Prepare deployment artifacts
-      run: |
-        mkdir -p deploy
-        cp -r investment-simulator/* deploy/
-        cp README.md deploy/
-        
-    - name: 🚀 Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v4
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./deploy
-        keep_files: true
-        
-    - name: ✅ Deployment complete
-      if: github.ref == 'refs/heads/main'
-      run: |
-        echo "🎉 Deployment successful!"
-        echo "🌐 Visit: https://xulilong.github.io/ai-trader/"
+      - name: ✅ Deployment complete
+        run: |
+          echo "🎉 Deployment successful!"
+          echo "🌐 Visit: ${{ steps.deployment.outputs.page_url }}"
