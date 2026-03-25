@@ -27,7 +27,7 @@ jobs:
       run: |
         if [ -f "investment-simulator/package.json" ]; then
           cd investment-simulator
-          npm ci
+          npm install --legacy-peer-deps || npm install
         fi
         
     - name: ✅ Validate JavaScript files
