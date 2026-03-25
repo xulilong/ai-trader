@@ -204,12 +204,12 @@ function makeDecision(stockData, engine, stockCode) {
     }
   }
   
-  // 根据评分和持仓状态决定操作
+  // 根据评分和持仓状态决定操作 - 激进模式
   let action = 'HOLD';
   let confidence = Math.min(Math.abs(totalScore) / 10, 1);
   
-  // 降低买入阈值，更容易产生交易
-  if (totalScore >= 2 && !hasPosition) {
+  // 激进买入阈值 - 更容易产生交易
+  if (totalScore >= 1 && !hasPosition) {
     action = 'BUY';
     // 计算目标仓位
     const availableCapital = engine.getAvailableCapital();
@@ -229,7 +229,7 @@ function makeDecision(stockData, engine, stockCode) {
         score: totalScore,
       };
     }
-  } else if (totalScore <= -2 && hasPosition) {
+  } else if (totalScore <= -1 && hasPosition) {
     action = 'SELL';
     return {
       action,

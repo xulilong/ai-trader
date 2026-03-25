@@ -16,14 +16,14 @@ module.exports = {
     stampTaxRate: 0.0005,
   },
   
-  // 风险控制
+  // 风险控制 - 激进模式（翻倍挑战）
   risk: {
-    // 单只股票最大亏损比例（止损）
-    stopLossPercent: 0.08,
-    // 单只股票最大盈利比例（止盈）
-    takeProfitPercent: 0.20,
+    // 单只股票最大亏损比例（止损）- 更紧
+    stopLossPercent: 0.05,
+    // 单只股票最大盈利比例（止盈）- 快速获利
+    takeProfitPercent: 0.15,
     // 总资金最大回撤
-    maxDrawdown: 0.15,
+    maxDrawdown: 0.20,
     // 同时持有最大股票数
     maxHoldings: 5,
   },
