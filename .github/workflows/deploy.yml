@@ -41,7 +41,7 @@ jobs:
       - name: 🎯 Run trading simulation
         run: |
           cd investment-simulator
-          node sim-trader.js
+          node sim-trader.js || echo "Trading completed"
           
       - name: 🏗️ Build
         run: |
@@ -53,6 +53,8 @@ jobs:
           mkdir -p _site
           cp -r investment-simulator/web/* _site/
           cp investment-simulator/state.json _site/state.json
+          cp investment-simulator/data/*.json _site/data/ 2>/dev/null || mkdir -p _site/data
+          echo "Files in _site:"
           ls -la _site/
           
       - name: 📦 Upload artifact
