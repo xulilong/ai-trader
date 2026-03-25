@@ -7,10 +7,12 @@ package-lock.json
 *.pem
 *.key
 config.local.js
+*.local.js
 
 # 运行时生成的文件
 investment-simulator/state.json
 investment-simulator/data/*.json
+investment-simulator/cache/
 *.log
 
 # 系统文件
@@ -18,6 +20,8 @@ investment-simulator/data/*.json
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # 临时文件
 tmp/
@@ -26,5 +30,11 @@ temp/
 
 # 缓存
 .cache/
-*.swp
-*.swo
+
+# 测试覆盖率
+coverage/
+
+# 构建输出
+dist/
+build/
+deploy/

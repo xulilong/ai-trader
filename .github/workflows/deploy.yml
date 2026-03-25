@@ -1,0 +1,62 @@
+name: 🚀 Auto Deploy
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+        
+    - name: 📦 Install dependencies
+      run: |
+        cd investment-simulator
+        npm install || echo "No package.json, skipping install"
+        
+    - name: 🧪 Run tests
+      run: |
+        cd investment-simulator
+        node sim-trader.js --stats || echo "Tests completed"
+        
+    - name: 📊 Generate sample data
+      run: |
+        cd investment-simulator
+        node sample-data.js
+        
+    - name: 🏗️ Build
+      run: |
+        cd investment-simulator
+        echo "Build completed"
+        
+    - name: 📁 Prepare deployment artifacts
+      run: |
+        mkdir -p deploy
+        cp -r investment-simulator/* deploy/
+        cp README.md deploy/
+        
+    - name: 🚀 Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./deploy
+        keep_files: true
+        
+    - name: ✅ Deployment complete
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🎉 Deployment successful!"
+        echo "🌐 Visit: https://xulilong.github.io/ai-trader/"

@@ -1,5 +1,40 @@
 {
-  "dependencies": {
-    "iconv-lite": "^0.7.2"
-  }
+  "name": "ai-trader",
+  "version": "1.0.0",
+  "description": "🦞 AI 操盘手 - 基于技术指标的自动化模拟投资交易系统",
+  "main": "investment-simulator/sim-trader.js",
+  "scripts": {
+    "start": "cd investment-simulator && node sim-trader.js",
+    "trade": "cd investment-simulator && node sim-trader.js",
+    "server": "cd investment-simulator && node server.js",
+    "dev": "cd investment-simulator && ./start.sh all",
+    "data": "cd investment-simulator && node sample-data.js",
+    "stats": "cd investment-simulator && node sim-trader.js --stats",
+    "test": "cd investment-simulator && node sim-trader.js --stats",
+    "clean": "rm -rf investment-simulator/state.json investment-simulator/data/*.json"
+  },
+  "keywords": [
+    "stock",
+    "trading",
+    "simulation",
+    "ai",
+    "quantitative",
+    "technical-analysis",
+    "a-share"
+  ],
+  "author": "龙哥",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xulilong/ai-trader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xulilong/ai-trader/issues"
+  },
+  "homepage": "https://github.com/xulilong/ai-trader#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }

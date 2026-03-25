@@ -1,0 +1,26 @@
+{
+  "name": "investment-simulator",
+  "version": "1.0.0",
+  "description": "模拟投资交易系统 - AI 操盘手",
+  "main": "sim-trader.js",
+  "scripts": {
+    "start": "node sim-trader.js",
+    "trade": "node sim-trader.js",
+    "server": "node server.js",
+    "dev": "./start.sh all",
+    "data": "node sample-data.js",
+    "stats": "node sim-trader.js --stats",
+    "export": "node sim-trader.js --export"
+  },
+  "keywords": [
+    "stock",
+    "trading",
+    "simulation",
+    "technical-analysis"
+  ],
+  "author": "龙哥",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
