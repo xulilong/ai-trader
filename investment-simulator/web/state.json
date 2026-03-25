@@ -1,39 +1,30 @@
 {
   "capital": 6847.35,
   "initialCapital": 10000,
-  "positions": [
-    {
+  "positions": {
+    "600519": {
       "code": "600519",
       "name": "贵州茅台",
       "shares": 100,
       "avgCost": 1720.50,
-      "currentPrice": 2848.82,
-      "marketValue": 284882,
-      "pnl": 112832,
-      "pnlPercent": 65.58
+      "currentPrice": 2848.82
     },
-    {
+    "601318": {
       "code": "601318",
       "name": "中国平安",
       "shares": 300,
       "avgCost": 44.50,
-      "currentPrice": 71.13,
-      "marketValue": 21339,
-      "pnl": 7989,
-      "pnlPercent": 59.84
+      "currentPrice": 71.13
     },
-    {
+    "600036": {
       "code": "600036",
       "name": "招商银行",
       "shares": 200,
       "avgCost": 36.00,
-      "currentPrice": 58.82,
-      "marketValue": 11764,
-      "pnl": 4560,
-      "pnlPercent": 63.39
+      "currentPrice": 58.82
     }
-  ],
-  "recentTrades": [
+  },
+  "tradeHistory": [
     {
       "id": "T1742904001",
       "type": "BUY",
@@ -91,19 +82,5 @@
       "positionCount": 3
     }
   ],
-  "stats": {
-    "initialCapital": 10000,
-    "currentCapital": 6847.35,
-    "currentAssets": 10685,
-    "totalReturn": "6.85",
-    "totalTrades": 0,
-    "winningTrades": 0,
-    "losingTrades": 0,
-    "winRate": "0.00",
-    "totalPnl": "0.00",
-    "totalCommission": "48.15",
-    "positionCount": 3,
-    "tradeHistoryLength": 3
-  },
   "lastUpdate": "2026-03-25T15:00:00.000Z"
 }
