@@ -1,150 +1,18 @@
 {
-  "capital": 4050,
+  "capital": 10000,
   "initialCapital": 10000,
-  "positions": {
-    "600519": {
-      "shares": 200,
-      "avgCost": 1680.00,
-      "currentPrice": 3123.21
-    },
-    "000858": {
-      "shares": 300,
-      "avgCost": 155.00,
-      "currentPrice": 294.85
-    },
-    "601318": {
-      "shares": 500,
-      "avgCost": 44.50,
-      "currentPrice": 66.25
-    },
-    "002594": {
-      "shares": 100,
-      "avgCost": 218.00,
-      "currentPrice": 379.47
-    },
-    "600036": {
-      "shares": 300,
-      "avgCost": 36.00,
-      "currentPrice": 49.78
-    }
-  },
-  "tradeHistory": [
-    {
-      "id": "T1742904000001",
-      "type": "BUY",
-      "stockCode": "600519",
-      "price": 1680.00,
-      "shares": 200,
-      "amount": 336000,
-      "commission": 84.00,
-      "totalCost": 336084.00,
-      "timestamp": "2026-03-20T09:35:00.000Z",
-      "reason": "多头排列; MACD 金叉; 突破 20 日新高"
-    },
-    {
-      "id": "T1742904000002",
-      "type": "BUY",
-      "stockCode": "000858",
-      "price": 155.00,
-      "shares": 300,
-      "amount": 46500,
-      "commission": 11.63,
-      "totalCost": 46511.63,
-      "timestamp": "2026-03-20T09:40:00.000Z",
-      "reason": "RSI 超卖; KDJ 低位; 布林带下轨"
-    },
-    {
-      "id": "T1742904000003",
-      "type": "BUY",
-      "stockCode": "601318",
-      "price": 44.50,
-      "shares": 500,
-      "amount": 22250,
-      "commission": 5.56,
-      "totalCost": 22255.56,
-      "timestamp": "2026-03-20T10:15:00.000Z",
-      "reason": "多头排列; 放量突破"
-    },
-    {
-      "id": "T1742904000004",
-      "type": "BUY",
-      "stockCode": "002594",
-      "price": 218.00,
-      "shares": 100,
-      "amount": 21800,
-      "commission": 5.45,
-      "totalCost": 21805.45,
-      "timestamp": "2026-03-21T09:30:00.000Z",
-      "reason": "趋势跟踪; 突破信号"
-    },
-    {
-      "id": "T1742904000005",
-      "type": "BUY",
-      "stockCode": "600036",
-      "price": 36.00,
-      "shares": 300,
-      "amount": 10800,
-      "commission": 2.70,
-      "totalCost": 10802.70,
-      "timestamp": "2026-03-21T14:20:00.000Z",
-      "reason": "均线多头; MACD 金叉"
-    }
-  ],
+  "positions": {},
+  "tradeHistory": [],
   "dailySnapshot": [
     {
-      "date": "2026-03-20",
-      "timestamp": "2026-03-20T15:00:00.000Z",
-      "capital": 4050,
+      "date": "2026-03-25",
+      "timestamp": "2026-03-25T06:57:00.000Z",
+      "capital": 10000,
       "totalAssets": 10000,
       "dailyReturn": 0,
       "totalReturn": 0,
-      "positionCount": 2
-    },
-    {
-      "date": "2026-03-21",
-      "timestamp": "2026-03-21T15:00:00.000Z",
-      "capital": 4050,
-      "totalAssets": 10580,
-      "dailyReturn": 0.058,
-      "totalReturn": 0.058,
-      "positionCount": 4
-    },
-    {
-      "date": "2026-03-22",
-      "timestamp": "2026-03-22T15:00:00.000Z",
-      "capital": 4050,
-      "totalAssets": 11250,
-      "dailyReturn": 0.063,
-      "totalReturn": 0.125,
-      "positionCount": 5
-    },
-    {
-      "date": "2026-03-23",
-      "timestamp": "2026-03-23T15:00:00.000Z",
-      "capital": 4050,
-      "totalAssets": 12180,
-      "dailyReturn": 0.083,
-      "totalReturn": 0.218,
-      "positionCount": 5
-    },
-    {
-      "date": "2026-03-24",
-      "timestamp": "2026-03-24T15:00:00.000Z",
-      "capital": 4050,
-      "totalAssets": 13450,
-      "dailyReturn": 0.104,
-      "totalReturn": 0.345,
-      "positionCount": 5
-    },
-    {
-      "date": "2026-03-25",
-      "timestamp": "2026-03-25T06:52:00.000Z",
-      "capital": 4050,
-      "totalAssets": 14892,
-      "dailyReturn": 0.107,
-      "totalReturn": 0.4892,
-      "positionCount": 5
+      "positionCount": 0
     }
   ],
-  "lastUpdate": "2026-03-25T06:52:00.000Z"
+  "lastUpdate": "2026-03-25T06:57:00.000Z"
 }
