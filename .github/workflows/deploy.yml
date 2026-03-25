@@ -38,6 +38,11 @@ jobs:
           cd investment-simulator
           node sample-data.js
           
+      - name: 🎯 Run trading simulation
+        run: |
+          cd investment-simulator
+          node sim-trader.js
+          
       - name: 🏗️ Build
         run: |
           cd investment-simulator
@@ -47,7 +52,8 @@ jobs:
         run: |
           mkdir -p _site
           cp -r investment-simulator/web/* _site/
-          cp investment-simulator/state.json _site/ 2>/dev/null || echo "No state.json yet"
+          cp investment-simulator/state.json _site/state.json
+          ls -la _site/
           
       - name: 📦 Upload artifact
         uses: actions/upload-pages-artifact@v3
