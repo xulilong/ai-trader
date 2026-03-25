@@ -10,7 +10,7 @@ config.local.js
 *.local.js
 
 # 运行时生成的文件
-investment-simulator/state.json
+
 investment-simulator/data/*.json
 investment-simulator/cache/
 *.log
