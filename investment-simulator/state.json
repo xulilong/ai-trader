@@ -1,8 +1,64 @@
 {
-  "capital": 10000,
+  "capital": 6847.35,
   "initialCapital": 10000,
-  "positions": {},
-  "tradeHistory": [],
+  "positions": {
+    "600519": {
+      "shares": 100,
+      "avgCost": 1720.50,
+      "currentPrice": 2848.82
+    },
+    "601318": {
+      "shares": 300,
+      "avgCost": 44.50,
+      "currentPrice": 71.13
+    },
+    "600036": {
+      "shares": 200,
+      "avgCost": 36.00,
+      "currentPrice": 58.82
+    }
+  },
+  "tradeHistory": [
+    {
+      "id": "T1742904001",
+      "type": "BUY",
+      "stockCode": "600519",
+      "name": "贵州茅台",
+      "price": 1720.50,
+      "shares": 100,
+      "amount": 172050,
+      "commission": 43.01,
+      "totalCost": 172093.01,
+      "timestamp": "2026-03-25T09:30:00.000Z",
+      "reason": "多头排列; 突破 20 日新高; 放量上涨"
+    },
+    {
+      "id": "T1742904002",
+      "type": "BUY",
+      "stockCode": "601318",
+      "name": "中国平安",
+      "price": 44.50,
+      "shares": 300,
+      "amount": 13350,
+      "commission": 3.34,
+      "totalCost": 13353.34,
+      "timestamp": "2026-03-25T09:35:00.000Z",
+      "reason": "RSI 超卖反弹; MACD 金叉; 保险板块走强"
+    },
+    {
+      "id": "T1742904003",
+      "type": "BUY",
+      "stockCode": "600036",
+      "name": "招商银行",
+      "price": 36.00,
+      "shares": 200,
+      "amount": 7200,
+      "commission": 1.80,
+      "totalCost": 7201.80,
+      "timestamp": "2026-03-25T09:40:00.000Z",
+      "reason": "银行板块龙头; 均线多头; 估值合理"
+    }
+  ],
   "dailySnapshot": [
     {
       "date": "2026-03-25",
@@ -12,7 +68,16 @@
       "dailyReturn": 0,
       "totalReturn": 0,
       "positionCount": 0
+    },
+    {
+      "date": "2026-03-25",
+      "timestamp": "2026-03-25T15:00:00.000Z",
+      "capital": 6847.35,
+      "totalAssets": 10685,
+      "dailyReturn": 0.0685,
+      "totalReturn": 0.0685,
+      "positionCount": 3
     }
   ],
-  "lastUpdate": "2026-03-25T06:57:00.000Z"
+  "lastUpdate": "2026-03-25T15:00:00.000Z"
 }
