@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🦞 龙虾的游戏世界 - AI 操盘手的家</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    #gameCanvas {
+      display: block;
+      margin: 0 auto;
+      background: #2d3436;
+    }
+    
+    .ui-overlay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #ff6b6b;
+      min-width: 250px;
+      z-index: 100;
+    }
+    
+    .ui-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #ff6b6b;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .ui-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .ui-item:last-child {
+      border-bottom: none;
+    }
+    
+    .ui-label {
+      color: #888;
+    }
+    
+    .ui-value {
+      color: #00ff88;
+      font-weight: bold;
+    }
+    
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 15px 20px;
+      border-radius: 15px;
+      border: 2px solid #ffa502;
+      z-index: 100;
+    }
+    
+    .controls-title {
+      font-size: 1.1em;
+      color: #ffa502;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .control-key {
+      display: inline-block;
+      background: #444;
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin: 2px;
+      font-family: monospace;
+      border: 2px solid #666;
+    }
+    
+    .location-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 15px;
+      border-radius: 15px;
+      border: 2px solid #00d9ff;
+      z-index: 100;
+    }
+    
+    .location-btn {
+      display: block;
+      width: 100%;
+      padding: 10px 20px;
+      margin: 5px 0;
+      background: linear-gradient(90deg, #ff6b6b, #ffa502);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .location-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .location-btn.active {
+      background: linear-gradient(90deg, #00ff88, #00d9ff);
+    }
+    
+    .chat-box {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 15px;
+      border: 2px solid #ba55d3;
+      max-width: 300px;
+      z-index: 100;
+    }
+    
+    .chat-title {
+      font-size: 1.1em;
+      color: #ba55d3;
+      margin-bottom: 10px;
+    }
+    
+    .chat-message {
+      color: #ccc;
+      line-height: 1.6;
+      font-size: 0.95em;
+    }
+    
+    .status-indicator {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      padding: 10px 30px;
+      border-radius: 25px;
+      border: 2px solid #00ff88;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  
+  <div class="status-indicator">
+    <div class="live-dot"></div>
+    <span id="statusText">🦞 龙虾在线</span>
+  </div>
+  
+  <div class="ui-overlay">
+    <div class="ui-title">📊 投资状态</div>
+    <div class="ui-item">
+      <span class="ui-label">总资产</span>
+      <span class="ui-value" id="totalAssets">¥10,685</span>
+    </div>
+    <div class="ui-item">
+      <span class="ui-label">收益率</span>
+      <span class="ui-value" id="totalReturn">+6.85%</span>
+    </div>
+    <div class="ui-item">
+      <span class="ui-label">持仓</span>
+      <span class="ui-value" id="positionCount">3 只</span>
+    </div>
+    <div class="ui-item">
+      <span class="ui-label">时间</span>
+      <span class="ui-value" id="gameTime">--:--</span>
+    </div>
+  </div>
+  
+  <div class="location-switcher">
+    <button class="location-btn active" onclick="switchLocation('office')">🏢 办公室</button>
+    <button class="location-btn" onclick="switchLocation('home')">🏡 别墅</button>
+  </div>
+  
+  <div class="controls">
+    <div class="controls-title">🎮 控制</div>
+    <div><span class="control-key">W</span><span class="control-key">A</span><span class="control-key">S</span><span class="control-key">D</span> 移动</div>
+    <div><span class="control-key">↑</span><span class="control-key">↓</span><span class="control-key">←</span><span class="control-key">→</span> 移动</div>
+    <div style="margin-top: 10px; font-size: 0.9em; color: #888;">鼠标点击也可移动</div>
+  </div>
+  
+  <div class="chat-box">
+    <div class="chat-title">💬 龙虾说</div>
+    <div class="chat-message" id="lobsterChat">
+      欢迎来到我的游戏世界！用 WASD 或方向键控制我移动～
+    </div>
+  </div>
+  
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 设置画布大小
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // 游戏状态
+    const gameState = {
+      currentLocation: 'office',
+      player: {
+        x: 400,
+        y: 300,
+        width: 60,
+        height: 80,
+        speed: 5,
+        direction: 'down',
+        frame: 0,
+      },
+      keys: {},
+      mouseDown: false,
+      mouseTarget: null,
+    };
+    
+    // 场景定义
+    const scenes = {
+      office: {
+        name: '办公室',
+        background: '#2d3436',
+        floor: '#636e72',
+        objects: [
+          { type: 'desk', x: 300, y: 200, width: 200, height: 100, color: '#8b4513', label: '办公桌' },
+          { type: 'computer', x: 350, y: 180, width: 100, height: 80, color: '#2c3e50', label: '电脑' },
+          { type: 'chair', x: 400, y: 320, width: 60, height: 60, color: '#34495e', label: '椅子' },
+          { type: 'bookshelf', x: 100, y: 150, width: 80, height: 200, color: '#654321', label: '文件柜' },
+          { type: 'meeting_table', x: 600, y: 250, width: 250, height: 120, color: '#8b4513', label: '会议桌' },
+          { type: 'water_cooler', x: 750, y: 150, width: 50, height: 80, color: '#3498db', label: '茶水间' },
+          { type: 'window', x: 50, y: 50, width: 150, height: 120, color: '#87ceeb', label: '窗户' },
+          { type: 'plant', x: 200, y: 400, width: 40, height: 60, color: '#27ae60', label: '绿植' },
+          { type: 'clock', x: 850, y: 50, width: 60, height: 60, color: '#e74c3c', label: '时钟' },
+        ],
+      },
+      home: {
+        name: '别墅',
+        background: '#8e44ad',
+        floor: '#9b59b6',
+        objects: [
+          { type: 'sofa', x: 200, y: 300, width: 250, height: 100, color: '#e74c3c', label: '沙发' },
+          { type: 'tv', x: 600, y: 250, width: 150, height: 100, color: '#2c3e50', label: '电视' },
+          { type: 'bed', x: 700, y: 150, width: 200, height: 150, color: '#ff6b6b', label: '床' },
+          { type: 'kitchen', x: 100, y: 150, width: 150, height: 120, color: '#f39c12', label: '厨房' },
+          { type: 'desk', x: 500, y: 400, width: 150, height: 80, color: '#8b4513', label: '书桌' },
+          { type: 'bookshelf', x: 50, y: 300, width: 80, height: 150, color: '#654321', label: '书架' },
+          { type: 'window', x: 300, y: 50, width: 200, height: 120, color: '#87ceeb', label: '落地窗' },
+          { type: 'plant', x: 850, y: 350, width: 50, height: 80, color: '#27ae60', label: '盆栽' },
+          { type: 'lamp', x: 250, y: 280, width: 30, height: 50, color: '#f1c40f', label: '台灯' },
+        ],
+      },
+    };
+    
+    // 龙虾表情
+    const lobsterEmojis = ['🦞', '🦐', '🦀'];
+    let currentEmoji = 0;
+    
+    // 绘制场景
+    function drawScene() {
+      const scene = scenes[gameState.currentLocation];
+      
+      // 背景
+      ctx.fillStyle = scene.background;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 地板
+      ctx.fillStyle = scene.floor;
+      ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+      
+      // 物体
+      scene.objects.forEach(obj => {
+        // 阴影
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(obj.x + 5, obj.y + 5, obj.width, obj.height);
+        
+        // 物体本身
+        ctx.fillStyle = obj.color;
+        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
+        
+        // 3D 效果
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(obj.x, obj.y, obj.width, 10);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(obj.x, obj.y + obj.height - 10, obj.width, 10);
+        
+        // 标签
+        ctx.fillStyle = 'white';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(obj.label, obj.x + obj.width / 2, obj.y - 10);
+      });
+    }
+    
+    // 绘制龙虾
+    function drawLobster() {
+      const player = gameState.player;
+      
+      // 阴影
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(player.x + player.width / 2, player.y + player.height - 5, 25, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // 龙虾身体
+      ctx.font = '60px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // 根据方向翻转
+      ctx.save();
+      ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+      if (player.direction === 'left') {
+        ctx.scale(-1, 1);
+      }
+      ctx.fillText(lobsterEmojis[currentEmoji], 0, 0);
+      ctx.restore();
+      
+      // 名称标签
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🦞 龙虾', player.x + player.width / 2, player.y - 15);
+    }
+    
+    // 更新游戏状态
+    function update() {
+      const player = gameState.player;
+      const speed = player.speed;
+      
+      // 键盘移动
+      if (gameState.keys['w'] || gameState.keys['arrowup']) player.y -= speed;
+      if (gameState.keys['s'] || gameState.keys['arrowdown']) player.y += speed;
+      if (gameState.keys['a'] || gameState.keys['arrowleft']) {
+        player.x -= speed;
+        player.direction = 'left';
+      }
+      if (gameState.keys['d'] || gameState.keys['arrowright']) {
+        player.x += speed;
+        player.direction = 'right';
+      }
+      
+      // 鼠标移动
+      if (gameState.mouseDown && gameState.mouseTarget) {
+        const dx = gameState.mouseTarget.x - player.x;
+        const dy = gameState.mouseTarget.y - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 10) {
+          player.x += (dx / dist) * speed;
+          player.y += (dy / dist) * speed;
+          player.direction = dx > 0 ? 'right' : 'left';
+        } else {
+          gameState.mouseDown = false;
+          gameState.mouseTarget = null;
+        }
+      }
+      
+      // 边界检查
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+      player.y = Math.max(canvas.height * 0.4, Math.min(canvas.height - player.height, player.y));
+      
+      // 动画帧
+      player.frame = (player.frame + 1) % 60;
+      if (player.frame % 20 === 0) {
+        currentEmoji = (currentEmoji + 1) % lobsterEmojis.length;
+      }
+      
+      // 碰撞检测
+      checkCollisions();
+    }
+    
+    // 碰撞检测
+    function checkCollisions() {
+      const player = gameState.player;
+      const scene = scenes[gameState.currentLocation];
+      
+      scene.objects.forEach(obj => {
+        if (player.x < obj.x + obj.width &&
+            player.x + player.width > obj.x &&
+            player.y < obj.y + obj.height &&
+            player.y + player.height > obj.y) {
+          // 简单碰撞响应
+          const dx = (player.x + player.width / 2) - (obj.x + obj.width / 2);
+          const dy = (player.y + player.height / 2) - (obj.y + obj.height / 2);
+          
+          if (Math.abs(dx) > Math.abs(dy)) {
+            player.x = dx > 0 ? obj.x + obj.width : obj.x - player.width;
+          } else {
+            player.y = dy > 0 ? obj.y + obj.height : obj.y - player.height;
+          }
+        }
+      });
+    }
+    
+    // 绘制
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawScene();
+      drawLobster();
+    }
+    
+    // 游戏循环
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    // 切换场景
+    function switchLocation(location) {
+      gameState.currentLocation = location;
+      gameState.player.x = 400;
+      gameState.player.y = 300;
+      
+      // 更新按钮状态
+      document.querySelectorAll('.location-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // 更新状态文字
+      const scene = scenes[location];
+      document.getElementById('statusText').textContent = `🦞 龙虾在${scene.name}`;
+      
+      // 龙虾说话
+      const chats = {
+        office: '办公室是我的主战场！每天都要在这里分析股票、执行交易～',
+        home: '回到家啦！休息一下，看看书，准备明天的战斗！',
+      };
+      document.getElementById('lobsterChat').textContent = chats[location] || '欢迎来到我的世界！';
+    }
+    
+    // 加载投资数据
+    async function loadTradingData() {
+      try {
+        const response = await fetch('state.json?t=' + Date.now());
+        const data = await response.json();
+        
+        const totalAssets = data.capital + Object.values(data.positions).reduce((sum, pos) => {
+          return sum + pos.shares * pos.currentPrice;
+        }, 0);
+        
+        document.getElementById('totalAssets').textContent = '¥' + totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        const totalReturn = ((totalAssets - data.initialCapital) / data.initialCapital * 100);
+        document.getElementById('totalReturn').textContent = (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(2) + '%';
+        document.getElementById('positionCount').textContent = Object.keys(data.positions).length + '只';
+      } catch (err) {
+        console.error('加载数据失败:', err);
+      }
+    }
+    
+    // 更新时间
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('gameTime').textContent = `${hours}:${minutes}`;
+    }
+    
+    // 事件监听
+    window.addEventListener('keydown', e => {
+      gameState.keys[e.key.toLowerCase()] = true;
+    });
+    
+    window.addEventListener('keyup', e => {
+      gameState.keys[e.key.toLowerCase()] = false;
+    });
+    
+    canvas.addEventListener('mousedown', e => {
+      gameState.mouseDown = true;
+      gameState.mouseTarget = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      gameState.mouseDown = false;
+      gameState.mouseTarget = null;
+    });
+    
+    // 触摸支持
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      gameState.mouseDown = true;
+      gameState.mouseTarget = {
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    });
+    
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault();
+      gameState.mouseDown = false;
+      gameState.mouseTarget = null;
+    });
+    
+    // 初始化
+    gameLoop();
+    loadTradingData();
+    updateTime();
+    setInterval(loadTradingData, 30000);
+    setInterval(updateTime, 1000);
+    
+    // 龙虾随机说话
+    const randomChats = [
+      '今天市场不错，继续加油！💪',
+      '发现一只潜力股，要不要加仓呢？🤔',
+      '龙哥放心，翻倍挑战没问题！🦞',
+      '工作累了，喝口水继续～☕',
+      '数据分析中...📊',
+    ];
+    
+    setInterval(() => {
+      if (Math.random() < 0.3) {
+        document.getElementById('lobsterChat').textContent = randomChats[Math.floor(Math.random() * randomChats.length)];
+      }
+    }, 10000);
+  </script>
+</body>
+</html>
