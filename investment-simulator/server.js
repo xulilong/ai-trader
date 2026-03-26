@@ -4,9 +4,17 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const RealtimeSync = require('./realtime-sync');
 
 const PORT = process.env.PORT || 3000;
 const WEB_DIR = path.join(__dirname, 'web');
+
+// 创建全局同步实例
+const sync = new RealtimeSync();
+
+// 缓存上次同步时间，避免频繁请求（间隔至少 30 秒）
+let lastSyncTime = 0;
+const SYNC_INTERVAL = 30000; // 30 秒
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -20,12 +28,26 @@ const mimeTypes = {
   '.ico': 'image/x-icon',
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   
-  // 处理 API 请求
+  // 处理 API 请求 - 自动同步实时行情
   if (req.url === '/api/state') {
     try {
+      const now = Date.now();
+      
+      // 如果超过同步间隔，自动拉取最新行情
+      if (now - lastSyncTime > SYNC_INTERVAL) {
+        console.log('[Server] 自动同步实时行情...');
+        try {
+          await sync.syncRealtimePrices();
+          lastSyncTime = now;
+        } catch (err) {
+          console.error('[Server] 同步行情失败:', err.message);
+          // 同步失败不影响返回旧数据
+        }
+      }
+      
       const stateFile = path.join(__dirname, 'state.json');
       if (fs.existsSync(stateFile)) {
         const state = fs.readFileSync(stateFile, 'utf8');

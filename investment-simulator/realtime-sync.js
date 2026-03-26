@@ -5,13 +5,87 @@
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+const http = require('http');
 
 const STATE_FILE = path.join(__dirname, 'state.json');
 const WEB_DIR = path.join(__dirname, 'web');
 
+// 腾讯行情 API（免费实时）
+const TENCENT_QUOTE_URL = 'http://qt.gtimg.cn/q=';
+
 class RealtimeSync {
   constructor() {
     this.state = this.loadState();
+  }
+
+  /**
+   * 获取股票代码对应的腾讯 API 代码
+   * 600/688 开头 → sh，其他 → sz
+   */
+  getMarketCode(stockCode) {
+    const code = stockCode.toString();
+    if (code.startsWith('600') || code.startsWith('688') || code.startsWith('601')) {
+      return 'sh' + code;
+    }
+    return 'sz' + code;
+  }
+
+  /**
+   * 从腾讯 API 获取实时行情
+   * @param {string[]} stockCodes - 股票代码列表 ['600519', '601318', '600036']
+   * @returns {Promise<Object>} - { '600519': { price: 1700, change: 15, changePercent: 0.89 }, ... }
+   */
+  async fetchQuotes(stockCodes) {
+    const queryCodes = stockCodes.map(code => this.getMarketCode(code)).join(',');
+    const url = TENCENT_QUOTE_URL + queryCodes;
+
+    return new Promise((resolve, reject) => {
+      http.get(url, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const prices = this.parseTencentQuote(data);
+            resolve(prices);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }).on('error', reject);
+    });
+  }
+
+  /**
+   * 解析腾讯行情返回数据
+   * 格式：v_sh600519="51~贵州茅台~600519~1720.50~1705.00~1705.00~..."
+   * 第 3 项 (索引 3) = 当前价格
+   * 第 31 项 (索引 31) = 涨跌额
+   * 第 32 项 (索引 32) = 涨跌幅 (%)
+   */
+  parseTencentQuote(data) {
+    const prices = {};
+    const lines = data.split('\n').filter(line => line.trim());
+
+    for (const line of lines) {
+      const match = line.match(/v_(sh|sz)(\d+)="([^"]+)"/);
+      if (match) {
+        const stockCode = match[2];
+        const fields = match[3].split('~');
+        
+        if (fields.length >= 33) {
+          prices[stockCode] = {
+            price: parseFloat(fields[3]) || 0,
+            change: parseFloat(fields[31]) || 0,
+            changePercent: parseFloat(fields[32]) || 0,
+            open: parseFloat(fields[4]) || 0,
+            high: parseFloat(fields[33]) || 0,
+            low: parseFloat(fields[34]) || 0,
+            volume: parseFloat(fields[36]) || 0,
+          };
+        }
+      }
+    }
+    return prices;
   }
   
   loadState() {
@@ -70,6 +144,39 @@ class RealtimeSync {
     });
     this.state.lastUpdate = new Date().toISOString();
     this.saveState();
+  }
+
+  /**
+   * 从腾讯 API 同步真实行情价格
+   */
+  async syncRealtimePrices() {
+    const stockCodes = Object.keys(this.state.positions);
+    if (stockCodes.length === 0) {
+      console.log('[RealtimeSync] 无持仓，跳过行情同步');
+      return;
+    }
+
+    try {
+      console.log('[RealtimeSync] 正在获取腾讯实时行情...', stockCodes.join(', '));
+      const quotes = await this.fetchQuotes(stockCodes);
+      
+      // 更新价格
+      Object.entries(quotes).forEach(([code, quote]) => {
+        if (this.state.positions[code]) {
+          this.state.positions[code].currentPrice = quote.price;
+          this.state.positions[code].lastQuote = quote;
+        }
+      });
+
+      this.state.lastUpdate = new Date().toISOString();
+      this.saveState();
+
+      console.log('[RealtimeSync] 行情同步完成，已更新', Object.keys(quotes).length, '只股票');
+      return quotes;
+    } catch (err) {
+      console.error('[RealtimeSync] 获取行情失败:', err.message);
+      throw err;
+    }
   }
   
   /**
@@ -241,8 +348,27 @@ if (require.main === module) {
     console.log('📊 每日快照:', snapshot);
   } else if (args[0] === 'deploy') {
     sync.triggerDeploy();
+  } else if (args[0] === 'sync') {
+    // 从腾讯 API 同步真实行情
+    sync.syncRealtimePrices()
+      .then(quotes => {
+        console.log('\n📈 实时行情:');
+        Object.entries(quotes).forEach(([code, q]) => {
+          const pos = sync.state.positions[code];
+          const pnl = (q.price - pos.avgCost) * pos.shares;
+          const pnlPercent = ((q.price - pos.avgCost) / pos.avgCost * 100).toFixed(2);
+          console.log(`  ${code} ${pos.name}: ¥${q.price}  涨跌：${q.change > 0 ? '+' : ''}${q.change} (${q.changePercent}%)  持仓盈亏：${pnl > 0 ? '+' : ''}${pnl.toFixed(2)} (${pnlPercent}%)`);
+        });
+        const totalAssets = sync.calculateTotalAssets();
+        const totalReturn = ((totalAssets - sync.state.initialCapital) / sync.state.initialCapital * 100).toFixed(2);
+        console.log(`\n💰 总资产：¥${totalAssets.toFixed(2)}  总收益：${totalReturn}%`);
+      })
+      .catch(err => {
+        console.error('同步失败:', err.message);
+        process.exit(1);
+      });
   } else {
-    console.log('用法：node realtime-sync.js [status|snapshot|deploy]');
+    console.log('用法：node realtime-sync.js [status|snapshot|deploy|sync]');
   }
 }
 
