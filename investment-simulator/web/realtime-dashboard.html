@@ -145,7 +145,7 @@
     <div class="status-bar">
       <div class="status-item">
         <div class="live-indicator"></div>
-        <span>🔴 实时连接</span>
+        <span id="statusText">🔴 实时连接</span>
       </div>
       <div class="status-item">
         <span id="lastUpdate">最后更新：-</span>
@@ -261,7 +261,15 @@
     async function loadData() {
       try {
         const response = await fetch('state.json?t=' + Date.now());
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         const data = await response.json();
+        
+        // 验证数据格式
+        if (!data.positions || typeof data.positions !== 'object') {
+          throw new Error('数据格式错误：缺少 positions 字段');
+        }
         
         updateStats(data);
         updatePositions(data.positions);
@@ -270,9 +278,13 @@
         updateLastUpdate(data.lastUpdate);
         
         document.getElementById('lastRefreshTime').textContent = formatTime(new Date().toISOString());
+        document.getElementById('statusText').textContent = '✅ 正常';
+        document.querySelector('.live-indicator').style.background = '#00ff88';
         countdown = 30;
       } catch (err) {
         console.error('加载数据失败:', err);
+        document.getElementById('statusText').textContent = '❌ 加载失败：' + err.message;
+        document.querySelector('.live-indicator').style.background = '#ff4757';
       }
     }
     
