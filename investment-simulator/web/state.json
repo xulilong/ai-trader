@@ -1,98 +1,90 @@
 {
-  "capital": 6847.35,
+  "capital": 1276.00,
   "initialCapital": 10000,
   "positions": {
-    "600036": {
-      "code": "600036",
-      "name": "招商银行",
-      "shares": 200,
-      "avgCost": 36,
-      "currentPrice": 39.56,
-      "lastQuote": {
-        "price": 39.56,
-        "change": 0.3,
-        "changePercent": 0.76,
-        "open": 39.26,
-        "high": 39.69,
-        "low": 39.14,
-        "volume": 616790
-      }
-    },
-    "600519": {
-      "code": "600519",
-      "name": "贵州茅台",
-      "shares": 100,
-      "avgCost": 1720.5,
-      "currentPrice": 1401.18,
-      "lastQuote": {
-        "price": 1401.18,
-        "change": -9.09,
-        "changePercent": -0.64,
-        "open": 1410.27,
-        "high": 1413.9,
-        "low": 1400.3,
-        "volume": 23093
-      }
-    },
-    "601318": {
-      "code": "601318",
-      "name": "中国平安",
+    "000001": {
+      "code": "000001",
+      "name": "平安银行",
       "shares": 300,
-      "avgCost": 44.5,
-      "currentPrice": 56.8,
-      "lastQuote": {
-        "price": 56.8,
-        "change": -1.99,
-        "changePercent": -3.38,
-        "open": 58.79,
-        "high": 58.78,
-        "low": 56.53,
-        "volume": 1011896
-      }
+      "avgCost": 10.94,
+      "currentPrice": 10.94
+    },
+    "000725": {
+      "code": "000725",
+      "name": "京东方 A",
+      "shares": 500,
+      "avgCost": 3.94,
+      "currentPrice": 3.94
+    },
+    "600028": {
+      "code": "600028",
+      "name": "中国石化",
+      "shares": 300,
+      "avgCost": 5.88,
+      "currentPrice": 5.88
+    },
+    "000100": {
+      "code": "000100",
+      "name": "TCL 科技",
+      "shares": 400,
+      "avgCost": 4.27,
+      "currentPrice": 4.27
     }
   },
   "tradeHistory": [
     {
-      "id": "T1742904001",
+      "id": "T1774520400001",
       "type": "BUY",
-      "stockCode": "600519",
-      "price": 1720.5,
-      "shares": 100,
-      "amount": 172050,
-      "commission": 43.01,
-      "totalCost": 172093.01,
-      "timestamp": "2026-03-25T09:30:00.000Z",
-      "reason": "多头排列; 突破 20 日新高; 放量上涨"
-    },
-    {
-      "id": "T1742904002",
-      "type": "BUY",
-      "stockCode": "601318",
-      "price": 44.5,
+      "stockCode": "000001",
+      "price": 10.94,
       "shares": 300,
-      "amount": 13350,
-      "commission": 3.34,
-      "totalCost": 13353.34,
-      "timestamp": "2026-03-25T09:35:00.000Z",
-      "reason": "RSI 超卖反弹; MACD 金叉; 保险板块走强"
+      "amount": 3282,
+      "commission": 0.82,
+      "totalCost": 3282.82,
+      "timestamp": "2026-03-26T10:30:00.000Z",
+      "reason": "银行龙头; 股价 10 元左右; 估值合理; 分散配置"
     },
     {
-      "id": "T1742904003",
+      "id": "T1774520400002",
       "type": "BUY",
-      "stockCode": "600036",
-      "price": 36,
-      "shares": 200,
-      "amount": 7200,
-      "commission": 1.8,
-      "totalCost": 7201.8,
-      "timestamp": "2026-03-25T09:40:00.000Z",
-      "reason": "银行板块龙头; 均线多头; 估值合理"
+      "stockCode": "000725",
+      "price": 3.94,
+      "shares": 500,
+      "amount": 1970,
+      "commission": 0.49,
+      "totalCost": 1970.49,
+      "timestamp": "2026-03-26T10:31:00.000Z",
+      "reason": "面板龙头; 股价 4 元以下; 科技 + 消费电子概念"
+    },
+    {
+      "id": "T1774520400003",
+      "type": "BUY",
+      "stockCode": "600028",
+      "price": 5.88,
+      "shares": 300,
+      "amount": 1764,
+      "commission": 0.44,
+      "totalCost": 1764.44,
+      "timestamp": "2026-03-26T10:32:00.000Z",
+      "reason": "石油龙头; 高股息; 防御性配置"
+    },
+    {
+      "id": "T1774520400004",
+      "type": "BUY",
+      "stockCode": "000100",
+      "price": 4.27,
+      "shares": 400,
+      "amount": 1708,
+      "commission": 0.43,
+      "totalCost": 1708.43,
+      "timestamp": "2026-03-26T10:33:00.000Z",
+      "reason": "显示面板 + 半导体; 股价低位; 科技成长"
     }
   ],
   "dailySnapshot": [
     {
-      "date": "2026-03-25",
-      "timestamp": "2026-03-25T06:57:00.000Z",
+      "date": "2026-03-26",
+      "timestamp": "2026-03-26T00:00:00.000Z",
       "capital": 10000,
       "totalAssets": 10000,
       "dailyReturn": 0,
@@ -100,14 +92,14 @@
       "positionCount": 0
     },
     {
-      "date": "2026-03-25",
-      "timestamp": "2026-03-25T15:00:00.000Z",
-      "capital": 6847.35,
-      "totalAssets": 10685,
-      "dailyReturn": 0.0685,
-      "totalReturn": 0.0685,
-      "positionCount": 3
+      "date": "2026-03-26",
+      "timestamp": "2026-03-26T10:35:00.000Z",
+      "capital": 1276.00,
+      "totalAssets": 10000,
+      "dailyReturn": 0,
+      "totalReturn": 0,
+      "positionCount": 4
     }
   ],
-  "lastUpdate": "2026-03-26T07:57:53.247Z"
+  "lastUpdate": "2026-03-26T10:35:00.000Z"
 }
