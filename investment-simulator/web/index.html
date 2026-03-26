@@ -348,9 +348,32 @@
         const response = await fetch('state.json?t=' + Date.now());
         const data = await response.json();
         
-        updateStats(data.stats);
+        // 计算总资产
+        const totalAssets = data.capital + Object.values(data.positions).reduce((sum, pos) => {
+          return sum + pos.shares * pos.currentPrice;
+        }, 0);
+        
+        // 计算总收益率
+        const totalReturn = ((totalAssets - data.initialCapital) / data.initialCapital * 100).toFixed(2);
+        
+        // 计算胜率
+        const sellTrades = data.tradeHistory.filter(t => t.type === 'SELL');
+        const winRate = sellTrades.length > 0 
+          ? ((sellTrades.filter(t => t.pnl > 0).length / sellTrades.length) * 100).toFixed(2)
+          : 0;
+        
+        const stats = {
+          totalAssets,
+          totalReturn,
+          winRate,
+          totalTrades: sellTrades.length,
+          positionCount: Object.keys(data.positions).length,
+          dailySnapshot: data.dailySnapshot,
+        };
+        
+        updateStats(stats);
         updatePositions(data.positions);
-        updateTrades(data.recentTrades);
+        updateTrades(data.tradeHistory.slice(-10).reverse());
         updateChart(data.dailySnapshot);
         updateLastUpdate(data.lastUpdate);
       } catch (err) {
@@ -360,7 +383,7 @@
     
     // 更新统计
     function updateStats(stats) {
-      document.getElementById('totalAssets').textContent = formatMoney(stats.currentAssets);
+      document.getElementById('totalAssets').textContent = formatMoney(stats.totalAssets);
       
       const totalReturnEl = document.getElementById('totalReturn');
       totalReturnEl.textContent = formatPercent(stats.totalReturn);
@@ -385,22 +408,30 @@
     function updatePositions(positions) {
       const tbody = document.getElementById('positionsBody');
       
-      if (!positions || positions.length === 0) {
+      // 支持对象或数组格式
+      const positionArray = Array.isArray(positions) 
+        ? positions 
+        : Object.entries(positions).map(([code, pos]) => ({ code, ...pos }));
+      
+      if (!positionArray || positionArray.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无持仓</td></tr>';
         return;
       }
       
-      tbody.innerHTML = positions.map(pos => {
-        const pnlClass = pos.pnl >= 0 ? 'pnl-up' : 'pnl-down';
+      tbody.innerHTML = positionArray.map(pos => {
+        const marketValue = pos.shares * pos.currentPrice;
+        const pnl = (pos.currentPrice - pos.avgCost) * pos.shares;
+        const pnlPercent = ((pos.currentPrice - pos.avgCost) / pos.avgCost) * 100;
+        const pnlClass = pnl >= 0 ? 'pnl-up' : 'pnl-down';
         return `
           <tr>
-            <td><strong>${pos.code}</strong></td>
+            <td><strong>${pos.code}</strong> ${pos.name || ''}</td>
             <td>${pos.shares}</td>
             <td>¥${pos.avgCost.toFixed(2)}</td>
             <td>¥${pos.currentPrice.toFixed(2)}</td>
-            <td>${formatMoney(pos.marketValue)}</td>
-            <td class="${pnlClass}">${formatMoney(pos.pnl)}</td>
-            <td class="${pnlClass}">${formatPercent(pos.pnlPercent)}</td>
+            <td>${formatMoney(marketValue)}</td>
+            <td class="${pnlClass}">${formatMoney(pnl)}</td>
+            <td class="${pnlClass}">${formatPercent(pnlPercent)}</td>
           </tr>
         `;
       }).join('');
